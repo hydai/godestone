@@ -9,7 +9,6 @@ require (
 	github.com/xivapi/godestone/v2 v2.7.0
 )
 
-replace github.com/xivapi/godestone/v2 => ../../
 
 require (
 	github.com/PuerkitoBio/goquery v1.9.2 // indirect
