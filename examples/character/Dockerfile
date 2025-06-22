@@ -17,7 +17,7 @@ RUN go mod download
 COPY . .
 
 # 構建應用程序
-RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o ff14-server .
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -tags "sqlite_omit_load_extension" -o ff14-server .
 
 # 運行階段：使用最小的 Alpine 鏡像
 FROM alpine:latest
