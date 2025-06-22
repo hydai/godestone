@@ -1,11 +1,15 @@
 # 多階段構建，優化最終鏡像大小
-FROM golang:1.21-alpine AS builder
+FROM golang:1.21 AS builder
 
 # 設定工作目錄
 WORKDIR /app
 
 # 安裝構建依賴
-RUN apk add --no-cache gcc musl-dev sqlite-dev
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libc6-dev \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # 複製 go.mod 和 go.sum
 COPY go.mod go.sum ./
@@ -17,17 +21,21 @@ RUN go mod download
 COPY . .
 
 # 構建應用程序
-RUN CGO_ENABLED=1 GOOS=linux CGO_CFLAGS="-D_GNU_SOURCE" go build -a -installsuffix cgo -tags "sqlite_omit_load_extension" -o ff14-server .
+RUN CGO_ENABLED=1 go build -o ff14-server .
 
-# 運行階段：使用最小的 Alpine 鏡像
-FROM alpine:latest
+# 運行階段：使用最小的 Ubuntu 鏡像
+FROM ubuntu:22.04
 
 # 安裝運行時依賴
-RUN apk --no-cache add ca-certificates sqlite
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libsqlite3-0 \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
 # 創建非 root 用戶
-RUN addgroup -g 1000 appuser && \
-    adduser -D -u 1000 -G appuser appuser
+RUN groupadd -g 1000 appuser && \
+    useradd -d /app -u 1000 -g appuser appuser
 
 # 設定工作目錄
 WORKDIR /app
