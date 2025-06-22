@@ -1,0 +1,39 @@
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+CLAUDE.md
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# JSON data files
+*.json
+
+# Built binaries
+ff14-server
+
+# Go build cache
+.cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Logs
+*.log
