@@ -1,32 +1,38 @@
 package main
 
 import (
-	"encoding/json"
+	"flag"
 	"log"
 	"os"
-	"strconv"
-
-	"github.com/karashiiro/bingode"
-	"github.com/xivapi/godestone/v2"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	s := godestone.NewScraper(bingode.New(), godestone.EN)
+	// 命令行參數
+	var (
+		port   = flag.String("port", "8080", "Server port")
+		dbPath = flag.String("db", "characters.db", "SQLite database path")
+	)
+	flag.Parse()
 
-	id, err := strconv.ParseUint(os.Args[1], 10, 32)
+	// 建立伺服器
+	server, err := NewServer(*dbPath, *port)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("Failed to create server: %v", err)
 	}
+	defer server.Close()
 
-	c, err := s.FetchCharacter(uint32(id))
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// 處理優雅關閉
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		<-c
+		log.Println("Shutting down server...")
+		server.Close()
+		os.Exit(0)
+	}()
 
-	cJSON, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	log.Println(string(cJSON))
+	// 啟動伺服器
+	log.Fatal(server.Start())
 }
